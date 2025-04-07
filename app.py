@@ -1,12 +1,12 @@
 import streamlit as st
-from PIL import Image
+from pyweb3d import ThreeJS
 import time
 from streamlit_extras.let_it_rain import rain
 
 # Page configuration
 st.set_page_config(
-    page_title="Premium Calculator",
-    page_icon="🧮",
+    page_title="3D Calculator",
+    page_icon="🧊",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
@@ -18,57 +18,43 @@ def load_css():
 
 load_css()
 
-# Background image
-def set_bg():
-    st.markdown(
-        """
-        <style>
-        .stApp {
-            background-image: url("https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+# 3D Background using Three.js
+def threejs_background():
+    threejs_html = """
+    <canvas id="bgCanvas" style="position:fixed;top:0;left:0;z-index:-1;"></canvas>
+    <script src="assets/threejs-background.js"></script>
+    """
+    st.components.v1.html(threejs_html, height=0)
 
-set_bg()
+threejs_background()
 
-# Calculator UI
+# Calculator UI in glass container
 with st.container():
     st.markdown("""
     <div class="calculator-header">
-        <h1>✨ Premium Calculator</h1>
-        <p class="subheader">Experience mathematical elegance</p>
+        <h1>🌀 3D Calculator</h1>
+        <p class="subheader">Calculate in a cosmic dimension</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Glassmorphism card effect
     with st.container():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         with col1:
-            num1 = st.number_input("First Number", value=0.0, step=0.1, key="num1",
-                                 help="Enter your first operand")
+            num1 = st.number_input("First Number", value=0.0, step=0.1, key="num1")
         with col2:
-            num2 = st.number_input("Second Number", value=0.0, step=0.1, key="num2",
-                                 help="Enter your second operand")
+            num2 = st.number_input("Second Number", value=0.0, step=0.1, key="num2")
 
-        # Operation selection with icons
         operation = st.radio(
             "Select Operation",
             ["➕ Addition", "➖ Subtraction", "✖️ Multiplication", "➗ Division"],
-            horizontal=True,
-            label_visibility="visible"
+            horizontal=True
         )
 
-        # Animated calculate button
         if st.button("Calculate", key="calculate", type="primary", use_container_width=True):
-            with st.spinner('Calculating...'):
-                time.sleep(0.5)  # Simulate processing
+            with st.spinner('Warping through dimensions...'):
+                time.sleep(0.8)  # Simulate cosmic calculation
                 
                 try:
                     op_symbol = operation[0]
@@ -83,15 +69,14 @@ with st.container():
                             raise ZeroDivisionError
                         result = num1 / num2
                     
-                    # Celebration animation
+                    # Cosmic celebration
                     rain(
-                        emoji="✨",
-                        font_size=30,
-                        falling_speed=5,
-                        animation_length=1,
+                        emoji="🌌",
+                        font_size=40,
+                        falling_speed=3,
+                        animation_length=2,
                     )
                     
-                    # Display result with animation
                     st.markdown(f"""
                     <div class="result-container">
                         <div class="calculation">
@@ -104,31 +89,31 @@ with st.container():
                     """, unsafe_allow_html=True)
                     
                 except ZeroDivisionError:
-                    st.error("Division by zero is not allowed!", icon="🚨")
+                    st.error("Black hole detected! Division by zero!", icon="🕳️")
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}", icon="⚠️")
+                    st.error(f"Cosmic anomaly: {str(e)}", icon="☄️")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-# Features section
+# Floating features section
 st.markdown("""
 <div class="features">
-    <h3>🌟 Premium Features</h3>
+    <h3>🌠 Cosmic Features</h3>
     <div class="feature-grid">
         <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h4>Lightning Fast</h4>
-            <p>Instant calculations with smooth animations</p>
+            <div class="feature-icon">🪐</div>
+            <h4>3D Universe</h4>
+            <p>Interactive cosmic background</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🎨</div>
-            <h4>Beautiful UI</h4>
-            <p>Modern glassmorphism design</p>
+            <div class="feature-icon">⚛️</div>
+            <h4>Quantum Speed</h4>
+            <p>Faster than light calculations</p>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🔒</div>
-            <h4>Error Protected</h4>
-            <p>Handles all edge cases gracefully</p>
+            <div class="feature-icon">🌌</div>
+            <h4>Stellar Effects</h4>
+            <p>Galactic animations</p>
         </div>
     </div>
 </div>
