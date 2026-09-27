@@ -25,7 +25,7 @@ This is a learning project, built in small stages with Claude Code.
 - [x] Stage 1: Project setup
 - [x] Stage 2: Scan files
 - [x] Stage 3: File classification
-- [ ] Stage 4: Organize files
+- [x] Stage 4: Organize files
 - [ ] Stage 5: Duplicate protection
 - [ ] Stage 6: Dry run mode
 - [ ] Stage 7: Unknown files
@@ -52,7 +52,7 @@ To add a new type, add a line to `CATEGORIES` in `scripts/organizer.py`.
 
 - The tool only works inside this project folder.
 - It never deletes files.
-- It never overwrites files. If a name is already taken, it renames the new file (`report_1.pdf`).
+- It never overwrites files. If a name is already taken in the destination, the file is skipped and stays in `input` (Stage 5 will rename it instead).
 
 ## How to run
 

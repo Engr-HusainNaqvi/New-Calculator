@@ -1,16 +1,19 @@
 """
 Smart File Organizer
 
-Stage 3: scan the input folder and show which folder each file would go to.
-Nothing is moved or changed.
+Stage 4: move each file from the input folder into a folder in output
+that matches its type (PDFs, Images, Excel, ...). Existing files are
+never overwritten.
 """
 
+import shutil
 from pathlib import Path
 
 # Folders are found relative to this script, so it works no matter
 # which folder you run it from.
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 INPUT_DIR = PROJECT_DIR / "input"
+OUTPUT_DIR = PROJECT_DIR / "output"
 
 # Classification rules: extension (lowercase, no dot) -> destination folder.
 # To support a new file type, just add a line here.
@@ -32,15 +35,6 @@ CATEGORIES = {
 UNKNOWN_CATEGORY = "Other"
 
 
-def format_size(size_in_bytes):
-    """Turn a number of bytes into readable text like '120 KB'."""
-    if size_in_bytes < 1024:
-        return f"{size_in_bytes} B"
-    if size_in_bytes < 1024 * 1024:
-        return f"{size_in_bytes / 1024:.0f} KB"
-    return f"{size_in_bytes / (1024 * 1024):.1f} MB"
-
-
 def scan_files(folder):
     """Return a sorted list of the files in a folder (sub-folders are skipped)."""
     files = []
@@ -59,21 +53,45 @@ def classify(file):
     return CATEGORIES.get(extension, UNKNOWN_CATEGORY)
 
 
+def create_category_folders():
+    """Create output/PDFs, output/Images, ... if they don't exist yet."""
+    # set() removes duplicates: "Images" appears 3 times in CATEGORIES
+    for folder_name in sorted(set(CATEGORIES.values())):
+        # exist_ok=True: no error if the folder is already there
+        (OUTPUT_DIR / folder_name).mkdir(parents=True, exist_ok=True)
+
+
+def organize_file(file):
+    """Move one file into its category folder. Returns what happened."""
+    destination_folder = OUTPUT_DIR / classify(file)
+    destination_folder.mkdir(parents=True, exist_ok=True)
+    destination = destination_folder / file.name
+
+    # Safety check: never overwrite a file that is already there
+    if destination.exists():
+        return "SKIPPED (same name already in destination)"
+
+    shutil.move(str(file), str(destination))
+    return "MOVED"
+
+
 def main():
     files = scan_files(INPUT_DIR)
 
     print(f"Scanning: {INPUT_DIR}")
     print(f"Found {len(files)} file(s)\n")
 
-    print("PROPOSED CLASSIFICATION (nothing is moved)\n")
-    print(f"{'FILENAME':<20} {'EXTENSION':<10} {'SIZE':>10}   DESTINATION")
-    print("-" * 58)
+    create_category_folders()
+
+    moved = 0
     for file in files:
-        # file.suffix is ".pdf" -> remove the dot and make it uppercase
-        extension = file.suffix.lstrip(".").upper() or "(none)"
-        size = format_size(file.stat().st_size)
         destination = classify(file)
-        print(f"{file.name:<20} {extension:<10} {size:>10}   {destination}/")
+        result = organize_file(file)
+        if result == "MOVED":
+            moved += 1
+        print(f"{file.name:<20} -> {destination + '/':<12} {result}")
+
+    print(f"\nDone: {moved} moved, {len(files) - moved} skipped.")
 
 
 # This line means: only run main() when the file is run directly,
