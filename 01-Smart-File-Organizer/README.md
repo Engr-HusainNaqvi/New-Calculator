@@ -24,7 +24,7 @@ This is a learning project, built in small stages with Claude Code.
 
 - [x] Stage 1: Project setup
 - [x] Stage 2: Scan files
-- [ ] Stage 3: File classification
+- [x] Stage 3: File classification
 - [ ] Stage 4: Organize files
 - [ ] Stage 5: Duplicate protection
 - [ ] Stage 6: Dry run mode
@@ -32,6 +32,21 @@ This is a learning project, built in small stages with Claude Code.
 - [ ] Stage 8: Activity log
 - [ ] Stage 9: Error handling
 - [ ] Stage 10: Testing
+
+## Classification rules
+
+| Extension        | Folder       |
+|------------------|--------------|
+| PDF              | PDFs/        |
+| JPG, JPEG, PNG   | Images/      |
+| XLS, XLSX        | Excel/       |
+| DOC, DOCX        | Word/        |
+| PPT, PPTX        | PowerPoint/  |
+| TXT              | Text/        |
+| anything else    | Other/       |
+
+Extensions are matched case-insensitively (`PHOTO.JPG` counts as JPG).
+To add a new type, add a line to `CATEGORIES` in `scripts/organizer.py`.
 
 ## Safety rules
 
