@@ -23,7 +23,7 @@ This is a learning project, built in small stages with Claude Code.
 ## Status
 
 - [x] Stage 1: Project setup
-- [ ] Stage 2: Scan files
+- [x] Stage 2: Scan files
 - [ ] Stage 3: File classification
 - [ ] Stage 4: Organize files
 - [ ] Stage 5: Duplicate protection
@@ -38,3 +38,13 @@ This is a learning project, built in small stages with Claude Code.
 - The tool only works inside this project folder.
 - It never deletes files.
 - It never overwrites files. If a name is already taken, it renames the new file (`report_1.pdf`).
+
+## How to run
+
+From the `01-Smart-File-Organizer` folder:
+
+```bash
+python scripts/organizer.py
+```
+
+(Use `python3` instead of `python` on macOS/Linux.)
