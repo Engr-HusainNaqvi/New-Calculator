@@ -12,6 +12,7 @@ Usage:
 
 import argparse
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -118,8 +119,25 @@ def write_log(filename, destination, action):
 
     # "a" = append: add to the end of the file, never erase what's there.
     # The file is created automatically the first time.
-    with open(LOG_FILE, "a", encoding="utf-8") as log:
-        log.write(line)
+    # Returns True if the line was written, False if the log is unavailable.
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as log:
+            log.write(line)
+        return True
+    except OSError:
+        return False
+
+
+def describe_error(error):
+    """Turn a Python error into a short message a user can understand."""
+    if isinstance(error, PermissionError):
+        return "permission denied (is the file open in another program?)"
+    if isinstance(error, FileNotFoundError):
+        return "file not found (was it moved or deleted during the run?)"
+    if isinstance(error, FileExistsError):
+        return f"a file is in the way where a folder should be: {error.filename}"
+    # Any other file-system problem: use the system's own description
+    return error.strerror or str(error)
 
 
 def parse_arguments():
@@ -136,27 +154,62 @@ def parse_arguments():
 
 
 def main():
+    """Run the organizer. Returns an exit code: 0 = success, 1 = problems."""
     args = parse_arguments()
     dry_run = args.dry_run
-
-    files = scan_files(INPUT_DIR)
 
     if dry_run:
         print("DRY RUN - nothing will be moved\n")
     print(f"Scanning: {INPUT_DIR}")
+
+    # --- Fatal problems: we can't do anything, so stop with a clear message
+    if not INPUT_DIR.exists():
+        print(f"ERROR: the input folder does not exist: {INPUT_DIR}")
+        print("Create it and put the files you want organized inside.")
+        return 1
+    if not INPUT_DIR.is_dir():
+        print(f"ERROR: 'input' is a file, not a folder: {INPUT_DIR}")
+        return 1
+    try:
+        files = scan_files(INPUT_DIR)
+    except OSError as error:
+        print(f"ERROR: cannot read the input folder: {describe_error(error)}")
+        return 1
+
     print(f"Found {len(files)} file(s)\n")
+    if not files:
+        print("Nothing to organize: the input folder is empty.")
+        return 0
 
     if not dry_run:
-        create_category_folders()
+        try:
+            create_category_folders()
+        except OSError as error:
+            print(f"ERROR: cannot create the output folders in {OUTPUT_DIR}: "
+                  f"{describe_error(error)}")
+            print("No files were moved.")
+            return 1
 
     # In a dry run we say what *would* happen
     action = "WOULD MOVE" if dry_run else "MOVED"
 
     renamed = 0
+    errors = 0
+    log_ok = True
     unknown_files = []  # remember unsupported files for the summary
     for file in files:
         folder_name = classify(file)
-        destination = organize_file(file, dry_run)
+
+        # --- Per-file problems: report and log them, then carry on
+        try:
+            destination = organize_file(file, dry_run)
+        except OSError as error:
+            errors += 1
+            result = f"ERROR: {describe_error(error)}"
+            print(f"{file.name:<20} -> {folder_name + '/':<12} {result}")
+            if not dry_run:
+                log_ok = write_log(file.name, f"{folder_name}/", result) and log_ok
+            continue  # skip to the next file
 
         if destination.name == file.name:
             result = action
@@ -174,13 +227,14 @@ def main():
 
         # Record real moves only: a dry run must not change anything
         if not dry_run:
-            write_log(file.name, f"{folder_name}/", result)
+            log_ok = write_log(file.name, f"{folder_name}/", result) and log_ok
 
+    ok_count = len(files) - errors
     if dry_run:
-        print(f"\nDry run finished: {len(files)} file(s) would be moved "
+        print(f"\nDry run finished: {ok_count} file(s) would be moved "
               f"({renamed} renamed). Run without --dry-run to organize.")
     else:
-        print(f"\nDone: {len(files)} moved ({renamed} renamed to avoid duplicates).")
+        print(f"\nDone: {ok_count} moved ({renamed} renamed to avoid duplicates).")
 
     if unknown_files:
         print(f"\nNote: {len(unknown_files)} file(s) with an unsupported type "
@@ -188,8 +242,17 @@ def main():
         for name in unknown_files:
             print(f"  - {name}")
 
+    if errors:
+        print(f"\nWARNING: {errors} file(s) could not be moved and were left "
+              f"in the input folder. See the messages above.")
+    if not log_ok:
+        print(f"\nWARNING: could not write to the log file: {LOG_FILE}")
+
+    return 1 if errors or not log_ok else 0
+
 
 # This line means: only run main() when the file is run directly,
 # not when another script imports it (useful later for testing).
+# sys.exit() passes main()'s exit code (0 or 1) back to the system.
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

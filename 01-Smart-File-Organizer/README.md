@@ -30,7 +30,7 @@ This is a learning project, built in small stages with Claude Code.
 - [x] Stage 6: Dry run mode
 - [x] Stage 7: Unknown files
 - [x] Stage 8: Activity log
-- [ ] Stage 9: Error handling
+- [x] Stage 9: Error handling
 - [ ] Stage 10: Testing
 
 ## Classification rules
@@ -60,6 +60,21 @@ Every real run adds lines to `output/organization_log.txt`:
 ```
 
 The log is only ever appended to, never erased. Dry runs don't write to it.
+
+## Error handling
+
+The organizer never crashes with a Python traceback on common problems.
+
+| Problem | What happens |
+|---|---|
+| `input` folder missing, not a folder, or unreadable | Clear error message, nothing is moved |
+| `input` folder empty | "Nothing to organize" message |
+| Output folders can't be created | Clear error message, nothing is moved |
+| One file can't be moved (in use, permission denied, vanished) | Error shown and logged, file stays in `input`, the other files are still organized |
+| Log file can't be written | Files are still organized, a warning is shown |
+
+Exit code: `0` when everything succeeded, `1` when anything went wrong
+(useful if another script or scheduled task runs the organizer).
 
 ## Safety rules
 
