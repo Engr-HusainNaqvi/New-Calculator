@@ -61,18 +61,35 @@ def create_category_folders():
         (OUTPUT_DIR / folder_name).mkdir(parents=True, exist_ok=True)
 
 
+def unique_destination(folder, filename):
+    """
+    Return a path in `folder` that is not taken yet.
+
+    report.pdf -> report.pdf, or report_1.pdf, report_2.pdf, ... if taken.
+    """
+    candidate = folder / filename
+    stem = candidate.stem      # "report"
+    suffix = candidate.suffix  # ".pdf"
+    counter = 1
+
+    # Keep trying the next number until we find a free name
+    while candidate.exists():
+        candidate = folder / f"{stem}_{counter}{suffix}"
+        counter += 1
+
+    return candidate
+
+
 def organize_file(file):
-    """Move one file into its category folder. Returns what happened."""
+    """Move one file into its category folder. Returns the new path."""
     destination_folder = OUTPUT_DIR / classify(file)
     destination_folder.mkdir(parents=True, exist_ok=True)
-    destination = destination_folder / file.name
 
-    # Safety check: never overwrite a file that is already there
-    if destination.exists():
-        return "SKIPPED (same name already in destination)"
+    # Never overwrite: pick a free name (renaming if necessary)
+    destination = unique_destination(destination_folder, file.name)
 
     shutil.move(str(file), str(destination))
-    return "MOVED"
+    return destination
 
 
 def main():
@@ -83,15 +100,20 @@ def main():
 
     create_category_folders()
 
-    moved = 0
+    renamed = 0
     for file in files:
-        destination = classify(file)
-        result = organize_file(file)
-        if result == "MOVED":
-            moved += 1
-        print(f"{file.name:<20} -> {destination + '/':<12} {result}")
+        folder_name = classify(file)
+        destination = organize_file(file)
 
-    print(f"\nDone: {moved} moved, {len(files) - moved} skipped.")
+        if destination.name == file.name:
+            result = "MOVED"
+        else:
+            result = f"MOVED (renamed to {destination.name})"
+            renamed += 1
+
+        print(f"{file.name:<20} -> {folder_name + '/':<12} {result}")
+
+    print(f"\nDone: {len(files)} moved ({renamed} renamed to avoid duplicates).")
 
 
 # This line means: only run main() when the file is run directly,
