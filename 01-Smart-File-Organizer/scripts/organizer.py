@@ -12,6 +12,7 @@ Usage:
 
 import argparse
 import shutil
+from datetime import datetime
 from pathlib import Path
 
 # Folders are found relative to this script, so it works no matter
@@ -19,6 +20,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 INPUT_DIR = PROJECT_DIR / "input"
 OUTPUT_DIR = PROJECT_DIR / "output"
+LOG_FILE = OUTPUT_DIR / "organization_log.txt"
 
 # Classification rules: extension (lowercase, no dot) -> destination folder.
 # To support a new file type, just add a line here.
@@ -106,6 +108,20 @@ def organize_file(file, dry_run=False):
     return destination
 
 
+def write_log(filename, destination, action):
+    """
+    Add one line to the activity log, for example:
+    2026-09-27 14:30:05 | report.pdf | PDFs/ | MOVED
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"{timestamp} | {filename} | {destination} | {action}\n"
+
+    # "a" = append: add to the end of the file, never erase what's there.
+    # The file is created automatically the first time.
+    with open(LOG_FILE, "a", encoding="utf-8") as log:
+        log.write(line)
+
+
 def parse_arguments():
     """Read the options typed after the script name."""
     parser = argparse.ArgumentParser(
@@ -151,10 +167,14 @@ def main():
         # Make unsupported file types stand out instead of hiding them
         if folder_name == UNKNOWN_CATEGORY:
             extension = file.suffix or "no extension"
-            result += f"  [unknown type: {extension}]"
+            result += f" [unknown type: {extension}]"
             unknown_files.append(file.name)
 
         print(f"{file.name:<20} -> {folder_name + '/':<12} {result}")
+
+        # Record real moves only: a dry run must not change anything
+        if not dry_run:
+            write_log(file.name, f"{folder_name}/", result)
 
     if dry_run:
         print(f"\nDry run finished: {len(files)} file(s) would be moved "

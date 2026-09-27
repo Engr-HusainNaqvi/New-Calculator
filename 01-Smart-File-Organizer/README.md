@@ -29,7 +29,7 @@ This is a learning project, built in small stages with Claude Code.
 - [x] Stage 5: Duplicate protection
 - [x] Stage 6: Dry run mode
 - [x] Stage 7: Unknown files
-- [ ] Stage 8: Activity log
+- [x] Stage 8: Activity log
 - [ ] Stage 9: Error handling
 - [ ] Stage 10: Testing
 
@@ -48,6 +48,18 @@ This is a learning project, built in small stages with Claude Code.
 Extensions are matched case-insensitively (`PHOTO.JPG` counts as JPG).
 Unknown files are never skipped or deleted: they go to `Other/` and are listed at the end of the run.
 To add a new type, add a line to `CATEGORIES` in `scripts/organizer.py`.
+
+## Activity log
+
+Every real run adds lines to `output/organization_log.txt`:
+
+```text
+2026-09-27 14:30:05 | report.pdf | PDFs/ | MOVED
+2026-09-27 14:30:05 | report.pdf | PDFs/ | MOVED (renamed to report_1.pdf)
+2026-09-27 14:30:05 | data.xyz | Other/ | MOVED [unknown type: .xyz]
+```
+
+The log is only ever appended to, never erased. Dry runs don't write to it.
 
 ## Safety rules
 
