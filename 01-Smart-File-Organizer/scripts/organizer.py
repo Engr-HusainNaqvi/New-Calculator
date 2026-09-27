@@ -59,9 +59,11 @@ def classify(file):
 
 
 def create_category_folders():
-    """Create output/PDFs, output/Images, ... if they don't exist yet."""
+    """Create output/PDFs, output/Images, ..., output/Other if missing."""
     # set() removes duplicates: "Images" appears 3 times in CATEGORIES
-    for folder_name in sorted(set(CATEGORIES.values())):
+    folder_names = set(CATEGORIES.values())
+    folder_names.add(UNKNOWN_CATEGORY)
+    for folder_name in sorted(folder_names):
         # exist_ok=True: no error if the folder is already there
         (OUTPUT_DIR / folder_name).mkdir(parents=True, exist_ok=True)
 
@@ -135,6 +137,7 @@ def main():
     action = "WOULD MOVE" if dry_run else "MOVED"
 
     renamed = 0
+    unknown_files = []  # remember unsupported files for the summary
     for file in files:
         folder_name = classify(file)
         destination = organize_file(file, dry_run)
@@ -145,6 +148,12 @@ def main():
             result = f"{action} (renamed to {destination.name})"
             renamed += 1
 
+        # Make unsupported file types stand out instead of hiding them
+        if folder_name == UNKNOWN_CATEGORY:
+            extension = file.suffix or "no extension"
+            result += f"  [unknown type: {extension}]"
+            unknown_files.append(file.name)
+
         print(f"{file.name:<20} -> {folder_name + '/':<12} {result}")
 
     if dry_run:
@@ -152,6 +161,12 @@ def main():
               f"({renamed} renamed). Run without --dry-run to organize.")
     else:
         print(f"\nDone: {len(files)} moved ({renamed} renamed to avoid duplicates).")
+
+    if unknown_files:
+        print(f"\nNote: {len(unknown_files)} file(s) with an unsupported type "
+              f"{'would go' if dry_run else 'went'} to {UNKNOWN_CATEGORY}/:")
+        for name in unknown_files:
+            print(f"  - {name}")
 
 
 # This line means: only run main() when the file is run directly,

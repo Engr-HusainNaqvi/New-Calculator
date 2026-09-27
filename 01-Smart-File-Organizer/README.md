@@ -28,7 +28,7 @@ This is a learning project, built in small stages with Claude Code.
 - [x] Stage 4: Organize files
 - [x] Stage 5: Duplicate protection
 - [x] Stage 6: Dry run mode
-- [ ] Stage 7: Unknown files
+- [x] Stage 7: Unknown files
 - [ ] Stage 8: Activity log
 - [ ] Stage 9: Error handling
 - [ ] Stage 10: Testing
@@ -43,9 +43,10 @@ This is a learning project, built in small stages with Claude Code.
 | DOC, DOCX        | Word/        |
 | PPT, PPTX        | PowerPoint/  |
 | TXT              | Text/        |
-| anything else    | Other/       |
+| anything else (including no extension) | Other/ |
 
 Extensions are matched case-insensitively (`PHOTO.JPG` counts as JPG).
+Unknown files are never skipped or deleted: they go to `Other/` and are listed at the end of the run.
 To add a new type, add a line to `CATEGORIES` in `scripts/organizer.py`.
 
 ## Safety rules
