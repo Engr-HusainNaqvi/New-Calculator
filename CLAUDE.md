@@ -32,3 +32,11 @@ Run from the repository root: `app.py` opens `assets/theme.css` with a relative 
 ## Deployment
 
 Intended for deployment on Streamlit Community Cloud, which uses `app.py` and `requirements.txt` from the repo root.
+
+## Sub-project: 01-Smart-File-Organizer
+
+`01-Smart-File-Organizer/` is a separate, standalone learning project (a Python file organizer, standard library only), unrelated to the calculator. See its `README.md`.
+
+- Run: `python3 01-Smart-File-Organizer/scripts/organizer.py [--dry-run]`
+- Test: `python3 01-Smart-File-Organizer/scripts/test_organizer.py`
+- The user is a beginner learning Claude Code: explain steps, keep code simple, never delete user files.

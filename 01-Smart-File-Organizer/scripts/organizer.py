@@ -53,6 +53,15 @@ def scan_files(folder):
     return sorted(files)
 
 
+def find_subfolders(folder):
+    """Return the names of sub-folders (they are not organized, only reported)."""
+    subfolders = []
+    for item in folder.iterdir():
+        if item.is_dir() and not item.name.startswith("."):
+            subfolders.append(item.name)
+    return sorted(subfolders)
+
+
 def classify(file):
     """Return the destination folder name for a file, e.g. 'PDFs'."""
     # .lower() makes "PHOTO.JPG" and "photo.jpg" follow the same rule
@@ -172,13 +181,20 @@ def main():
         return 1
     try:
         files = scan_files(INPUT_DIR)
+        subfolders = find_subfolders(INPUT_DIR)
     except OSError as error:
         print(f"ERROR: cannot read the input folder: {describe_error(error)}")
         return 1
 
     print(f"Found {len(files)} file(s)\n")
+
+    # Don't ignore sub-folders silently: say they were left where they are
+    if subfolders:
+        print(f"Note: {len(subfolders)} sub-folder(s) left in place "
+              f"(only files are organized): {', '.join(subfolders)}\n")
+
     if not files:
-        print("Nothing to organize: the input folder is empty.")
+        print("Nothing to organize: there are no files in the input folder.")
         return 0
 
     if not dry_run:

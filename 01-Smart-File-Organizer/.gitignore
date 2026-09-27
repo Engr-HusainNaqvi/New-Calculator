@@ -1,0 +1,5 @@
+# Python cache
+__pycache__/
+
+# Leftover test sandboxes (normally removed automatically)
+test_tmp_*/
