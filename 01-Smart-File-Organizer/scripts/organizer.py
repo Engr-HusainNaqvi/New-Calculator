@@ -1,11 +1,16 @@
 """
 Smart File Organizer
 
-Stage 4: move each file from the input folder into a folder in output
-that matches its type (PDFs, Images, Excel, ...). Existing files are
-never overwritten.
+Moves each file from the input folder into a folder in output that
+matches its type (PDFs, Images, Excel, ...). Existing files are never
+overwritten: a clashing name gets a number (report_1.pdf).
+
+Usage:
+    python scripts/organizer.py --dry-run   # preview only, nothing moves
+    python scripts/organizer.py             # organize for real
 """
 
+import argparse
 import shutil
 from pathlib import Path
 
@@ -80,40 +85,73 @@ def unique_destination(folder, filename):
     return candidate
 
 
-def organize_file(file):
-    """Move one file into its category folder. Returns the new path."""
+def organize_file(file, dry_run=False):
+    """
+    Move one file into its category folder. Returns the new path.
+
+    With dry_run=True nothing is created or moved; we only work out
+    where the file *would* go.
+    """
     destination_folder = OUTPUT_DIR / classify(file)
-    destination_folder.mkdir(parents=True, exist_ok=True)
 
     # Never overwrite: pick a free name (renaming if necessary)
     destination = unique_destination(destination_folder, file.name)
 
-    shutil.move(str(file), str(destination))
+    if not dry_run:
+        destination_folder.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(file), str(destination))
+
     return destination
 
 
+def parse_arguments():
+    """Read the options typed after the script name."""
+    parser = argparse.ArgumentParser(
+        description="Organize files in the input folder by file type."
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",  # True if --dry-run is typed, else False
+        help="show what would happen without moving anything",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_arguments()
+    dry_run = args.dry_run
+
     files = scan_files(INPUT_DIR)
 
+    if dry_run:
+        print("DRY RUN - nothing will be moved\n")
     print(f"Scanning: {INPUT_DIR}")
     print(f"Found {len(files)} file(s)\n")
 
-    create_category_folders()
+    if not dry_run:
+        create_category_folders()
+
+    # In a dry run we say what *would* happen
+    action = "WOULD MOVE" if dry_run else "MOVED"
 
     renamed = 0
     for file in files:
         folder_name = classify(file)
-        destination = organize_file(file)
+        destination = organize_file(file, dry_run)
 
         if destination.name == file.name:
-            result = "MOVED"
+            result = action
         else:
-            result = f"MOVED (renamed to {destination.name})"
+            result = f"{action} (renamed to {destination.name})"
             renamed += 1
 
         print(f"{file.name:<20} -> {folder_name + '/':<12} {result}")
 
-    print(f"\nDone: {len(files)} moved ({renamed} renamed to avoid duplicates).")
+    if dry_run:
+        print(f"\nDry run finished: {len(files)} file(s) would be moved "
+              f"({renamed} renamed). Run without --dry-run to organize.")
+    else:
+        print(f"\nDone: {len(files)} moved ({renamed} renamed to avoid duplicates).")
 
 
 # This line means: only run main() when the file is run directly,

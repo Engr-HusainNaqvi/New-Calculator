@@ -27,7 +27,7 @@ This is a learning project, built in small stages with Claude Code.
 - [x] Stage 3: File classification
 - [x] Stage 4: Organize files
 - [x] Stage 5: Duplicate protection
-- [ ] Stage 6: Dry run mode
+- [x] Stage 6: Dry run mode
 - [ ] Stage 7: Unknown files
 - [ ] Stage 8: Activity log
 - [ ] Stage 9: Error handling
@@ -59,7 +59,16 @@ To add a new type, add a line to `CATEGORIES` in `scripts/organizer.py`.
 From the `01-Smart-File-Organizer` folder:
 
 ```bash
+# 1. Preview: shows where every file would go, moves nothing
+python scripts/organizer.py --dry-run
+
+# 2. Organize for real
 python scripts/organizer.py
+
+# Show all options
+python scripts/organizer.py --help
 ```
 
 (Use `python3` instead of `python` on macOS/Linux.)
+
+Tip: always do a dry run first.
